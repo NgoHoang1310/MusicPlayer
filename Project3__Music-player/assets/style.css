@@ -23,6 +23,11 @@ body{
     color: #ec1f60 !important;
 }
 
+.song-active{
+    background-color: #ec1f60 !important;
+    color: white;
+}
+
 .btn-hover{
     border-radius: 50%;
     transition: background-color linear 0.1s;

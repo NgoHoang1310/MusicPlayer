@@ -1,6 +1,7 @@
 const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
 
+var getMusicLists = $('.music-name-list');
 var getMusicName = $('.player-music-name');
 var getCdThumb = $('.player-cd__thumb');
 var getAudio = $('.audioSrc');
@@ -11,7 +12,7 @@ var getNextBtn = $('.player-control__function.next');
 var getPreviousBtn = $('.player-control__function.previous');
 var getRandomBtn = $('.player-control__function.random');
 var getReplayBtn = $('.player-control__function.replay')
-var songDefaultIndex = 0;
+var songDefaultIndex =0;
 var isRandom = false;
 var isReplay = false;
 // var songRandomIndex = Math.floor(Math.random()*10);
@@ -94,9 +95,8 @@ const app = {
     },
 
     renderListSong: function() {
-        var getMusicLists = $('.music-name-list');
-        var html = this.songs.map(function(song) {
-            return ` <li class="music-item">
+        var html = this.songs.map(function(song,index) {
+            return ` <li class="music-item ${songDefaultIndex===index?'song-active':''}" data-index="${index}">
             <div class="music-item__image">
                 <img src="${song.image}" alt="" class="music-item__img">
             </div>
@@ -110,7 +110,6 @@ const app = {
         </li>`
         })
          getMusicLists.innerHTML = html.join('');
-
     },
     handleSrollTop: function() {
           var heightTop = $('.player-cd__thumb').offsetWidth;
@@ -126,6 +125,7 @@ const app = {
     nextSong: function() {
         if(isRandom) {
             this.playRandom();
+        this.renderListSong();
         }
         else{
             songDefaultIndex++;
@@ -133,6 +133,7 @@ const app = {
             songDefaultIndex = 0;
         }
         this.renderSongPlayer();
+        this.renderListSong();
         }
         
     },
@@ -147,6 +148,7 @@ const app = {
             songDefaultIndex = app.songs.length-1;
         }
         this.renderSongPlayer();
+        this.renderListSong();
     }
     },
 
@@ -171,37 +173,59 @@ const app = {
             duration: 10000,
             iterations: Infinity
         })
+
           cdThumbAnimate.pause();
+
+           //xử lý nút next bài
+           getNextBtn.onclick = function() {
+            app.nextSong();
+            getAudio.play();
+         
+            }
+           //xử lý nút previous bài
+           getPreviousBtn.onclick =function(e) {
+           app.prevSong();
+           getAudio.play();
+           }
         //xử lý nút play
           getPlayBtn.onclick = function() {
           
            getAudio.play();
-           //xử lí range input
+        
+          }
+            //xử lí nút pause
+
+          getPauseBtn.onclick = function() {
+            getAudio.pause();
+
+           }
+
+           //xử lí khi bài hát được chạy
+           getAudio.onplay = function() {
+            getPauseBtn.classList.remove('disable');
+            getPlayBtn.classList.add('disable');
+          cdThumbAnimate.play();
           getAudio.ontimeupdate = function() {
             getInputRange.value = this.currentTime;
             getInputRange.max = this.duration;
          }
          //xử lí tua bài hát
          getInputRange.onchange = function() {
-           getAudio.currentTime = this.value;
-          }
-            //xử lí nút pause
-          }
-          getPauseBtn.onclick = function() {
-            getAudio.pause();
-
+            getAudio.currentTime = this.value;
            }
-           getAudio.onplay = function() {
-            getPauseBtn.classList.remove('disable');
-            getPlayBtn.classList.add('disable');
-          cdThumbAnimate.play();
          
            }
+
+           //xử lí khi bài hát đang dừng
 
            getAudio.onpause = function() {
             getPlayBtn.classList.remove('disable');
             getPauseBtn.classList.add('disable');
             cdThumbAnimate.pause();
+    
+             getInputRange.onchange = function() {
+                getAudio.currentTime = this.value;
+               }
            }
            //xử lý tự động next bài
            getAudio.onended = function() {
@@ -214,30 +238,6 @@ const app = {
                    },2000)
             }
            }
-          //xử lý nút next bài
-           getNextBtn.onclick = function() {
-           app.nextSong();
-           getAudio.play();
-           getAudio.ontimeupdate = function() {
-             getInputRange.value = this.currentTime;
-             getInputRange.max = this.duration;
-          }
-          getInputRange.onchange = function() {
-             getAudio.currentTime = this.value;
-            }
-           }
-          //xử lý nút previous bài
-          getPreviousBtn.onclick =function(e) {
-          app.prevSong();
-          getAudio.play();
-           getAudio.ontimeupdate = function() {
-             getInputRange.value = this.currentTime;
-             getInputRange.max = this.duration;
-          }
-          getInputRange.onchange = function() {
-             getAudio.currentTime = this.value;
-            }
-          }
 
           //xử lí nút random
           getRandomBtn.onclick = function() {
@@ -249,13 +249,26 @@ const app = {
           }
 
           //xử lí chọn bài hát 
-         selectSong.forEach(function(song,index) {
-            song.onclick = function() {
-                songDefaultIndex = index;
-                app.renderSongPlayer();
-                getAudio.play();
+        //  selectSong.forEach(function(song,index) {
+        //     song.onclick = function() {
+        //         songDefaultIndex = index;
+        //         app.renderSongPlayer();
+        //         // songDefaultIndex = index;
+        //         // getAudio.play();
+        //     }
+        //  } )
+        getMusicLists.onclick = function(e) {
+            var songNode = e.target.closest('.music-item');
+            if(songNode&&!e.target.closest('.music-item__more')) {
+                songDefaultIndex = Number(songNode.getAttribute('data-index'));
+                // console.log(songDefaultIndex)
             }
-         } )
+            app.renderListSong();
+            app.renderSongPlayer();
+            getAudio.play();
+            // console.log(songNode)
+
+        }
          //xử nút phát lại
          getReplayBtn.onclick = function() {
             if(this.classList.toggle('active')) {
@@ -276,7 +289,6 @@ const app = {
 }
 
 app.run();
-
 
 
 
