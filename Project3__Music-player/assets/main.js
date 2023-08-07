@@ -12,20 +12,21 @@ var getNextBtn = $('.player-control__function.next');
 var getPreviousBtn = $('.player-control__function.previous');
 var getRandomBtn = $('.player-control__function.random');
 var getReplayBtn = $('.player-control__function.replay')
-var songDefaultIndex =0;
+var songDefaultIndex = 0;
 var isRandom = false;
 var isReplay = false;
+var isDownLoad = false;
 // var songRandomIndex = Math.floor(Math.random()*10);
 
 const app = {
-    songs : [
+    songs: [
         {
             name: 'Anh chưa thương em đến vậy đâu',
             singer: 'Myra Trần',
             path: './assets/audio/Anh-Chua-Thuong-Em-Den-Vay-Dau-Lady-May.mp3',
             image: './assets/img/Anh chưa thương em đến vậy đâu.jpg'
         },
-       
+
         {
             name: 'Chưa quên người yêu cũ',
             singer: 'Hà Nhi',
@@ -38,7 +39,7 @@ const app = {
             path: './assets/audio/DauCoLoiLam-BuiAnhTuan_46k5v.mp3',
             image: './assets/img/Dẫu có lỗi lầm.jpg'
         },
-       
+
         {
             name: 'Yêu người có ước mơ',
             singer: 'Bùi Trường Linh',
@@ -88,15 +89,15 @@ const app = {
             image: './assets/img/Có không giữ mất đừng tìm.jpg'
         },
     ],
-    renderSongPlayer: function() {
+    renderSongPlayer: function () {
         getMusicName.innerText = this.songs[songDefaultIndex].name;
         getCdThumb.style.backgroundImage = `url("${this.songs[songDefaultIndex].image}")`;
         getAudio.src = this.songs[songDefaultIndex].path;
     },
 
-    renderListSong: function() {
-        var html = this.songs.map(function(song,index) {
-            return ` <li class="music-item ${songDefaultIndex===index?'song-active':''}" data-index="${index}">
+    renderListSong: function () {
+        var html = this.songs.map(function (song, index) {
+            return ` <li class="music-item ${songDefaultIndex === index ? 'song-active' : ''}" data-index="${index}">
             <div class="music-item__image">
                 <img src="${song.image}" alt="" class="music-item__img">
             </div>
@@ -106,185 +107,207 @@ const app = {
                  <p class="music-item__singer">${song.singer}</p>
             </div>
         
-            <div class="music-item__more"> <i class="fas fa-ellipsis-h"></i></div>
+            <div class="music-item__more"> <i class="fas fa-ellipsis-h"></i>
+            <a href="" class="music-item__download">Download</a>
+        </div>
+            
         </li>`
         })
-         getMusicLists.innerHTML = html.join('');
+        getMusicLists.innerHTML = html.join('');
     },
-    handleSrollTop: function() {
-          var heightTop = $('.player-cd__thumb').offsetWidth;
-        
-       document.onscroll = function() {
-          var heightScroll = window.scrollY;
-        
-          var newHeightTop = heightTop - heightScroll;
-          $('.player-cd').style.width = newHeightTop > 0 ? newHeightTop + 'px' : 0;
-       }
+    
+    handleSrollTop: function () {
+        var heightTop = $('.player-cd__thumb').offsetWidth;
+
+        document.onscroll = function () {
+            var heightScroll = window.scrollY;
+
+            var newHeightTop = heightTop - heightScroll;
+            $('.player-cd').style.width = newHeightTop > 0 ? newHeightTop + 'px' : 0;
+        }
     },
 
-    nextSong: function() {
-        if(isRandom) {
+    nextSong: function () {
+        if (isRandom) {
             this.playRandom();
-        this.renderListSong();
+            this.renderListSong();
         }
-        else{
+        else {
             songDefaultIndex++;
-        if(songDefaultIndex >= app.songs.length) {
-            songDefaultIndex = 0;
+            if (songDefaultIndex >= app.songs.length) {
+                songDefaultIndex = 0;
+            }
+            this.renderSongPlayer();
+            this.renderListSong();
         }
-        this.renderSongPlayer();
-        this.renderListSong();
-        }
-        
+
     },
 
-    prevSong: function() {
-        if(isRandom) {
+    prevSong: function () {
+        if (isRandom) {
             this.playRandom();
         }
-        else{
-        songDefaultIndex--;
-        if(songDefaultIndex < 0) {
-            songDefaultIndex = app.songs.length-1;
+        else {
+            songDefaultIndex--;
+            if (songDefaultIndex < 0) {
+                songDefaultIndex = app.songs.length - 1;
+            }
+            this.renderSongPlayer();
+            this.renderListSong();
         }
-        this.renderSongPlayer();
-        this.renderListSong();
-    }
     },
 
-    playRandom: function() {
+    playRandom: function () {
         var randomSong;
-        do{
-           randomSong = Math.floor(Math.random()*this.songs.length);
-        }while(randomSong == songDefaultIndex);
+        do {
+            randomSong = Math.floor(Math.random() * this.songs.length);
+        } while (randomSong == songDefaultIndex);
         songDefaultIndex = randomSong;
-         this.renderSongPlayer();
+        this.renderSongPlayer();
     },
-    replaySong: function() {
-            getAudio.play();
+    replaySong: function () {
+        getAudio.play();
+    },
+    downloadSong: function (index) {
+        var getDownloadBtn = $$('.music-item__download');
+        if (getDownloadBtn[index].classList.toggle('enable')) {
+            getDownloadBtn[index].href = `${app.songs[index].path}`;
+            getDownloadBtn[index].download = "";
+        }
+
     },
 
-    handleEvents: function() {
-        var selectSong = $$('.music-item')
+    handleEvents: function () {
+        // var selectSong = $$('.music-item')
+        var getMore = $$('.music-item__more');
+
         //xử lí cd quay / dừng
         var cdThumbAnimate = getCdThumb.animate([
-            {transform: 'rotate(360deg)'}
-        ],{
+            { transform: 'rotate(360deg)' }
+        ], {
             duration: 10000,
             iterations: Infinity
         })
 
-          cdThumbAnimate.pause();
+        cdThumbAnimate.pause();
 
-           //xử lý nút next bài
-           getNextBtn.onclick = function() {
+        //xử lý nút next bài
+        getNextBtn.onclick = function () {
             app.nextSong();
             getAudio.play();
-         
-            }
-           //xử lý nút previous bài
-           getPreviousBtn.onclick =function(e) {
-           app.prevSong();
-           getAudio.play();
-           }
-        //xử lý nút play
-          getPlayBtn.onclick = function() {
-          
-           getAudio.play();
-        
-          }
-            //xử lí nút pause
 
-          getPauseBtn.onclick = function() {
+        }
+        //xử lý nút previous bài
+        getPreviousBtn.onclick = function (e) {
+            app.prevSong();
+            getAudio.play();
+        }
+        //xử lý nút play
+        getPlayBtn.onclick = function () {
+
+            getAudio.play();
+
+        }
+        //xử lí nút pause
+
+        getPauseBtn.onclick = function () {
             getAudio.pause();
 
-           }
+        }
 
-           //xử lí khi bài hát được chạy
-           getAudio.onplay = function() {
+        //xử lí khi bài hát được chạy
+        getAudio.onplay = function () {
             getPauseBtn.classList.remove('disable');
             getPlayBtn.classList.add('disable');
-          cdThumbAnimate.play();
-          getAudio.ontimeupdate = function() {
-            getInputRange.value = this.currentTime;
-            getInputRange.max = this.duration;
-         }
-         //xử lí tua bài hát
-         getInputRange.onchange = function() {
-            getAudio.currentTime = this.value;
-           }
-         
-           }
+            cdThumbAnimate.play();
+            getAudio.ontimeupdate = function () {
+                getInputRange.value = this.currentTime;
+                getInputRange.max = this.duration;
+            }
+            //xử lí tua bài hát
+            getInputRange.onchange = function () {
+                getAudio.currentTime = this.value;
+            }
 
-           //xử lí khi bài hát đang dừng
+        }
 
-           getAudio.onpause = function() {
+        //xử lí khi bài hát đang dừng
+
+        getAudio.onpause = function () {
             getPlayBtn.classList.remove('disable');
             getPauseBtn.classList.add('disable');
             cdThumbAnimate.pause();
-    
-             getInputRange.onchange = function() {
+
+            getInputRange.onchange = function () {
                 getAudio.currentTime = this.value;
-               }
-           }
-           //xử lý tự động next bài
-           getAudio.onended = function() {
-            if(isReplay) {
+            }
+        }
+        //xử lý tự động next bài
+        getAudio.onended = function () {
+            if (isReplay) {
                 app.replaySong();
-            }else{
-                setTimeout(function() {
+            } else {
+                setTimeout(function () {
                     app.nextSong();
                     getAudio.play();
-                   },2000)
+                }, 2000)
             }
-           }
+        }
 
-          //xử lí nút random
-          getRandomBtn.onclick = function() {
-           if(this.classList.toggle('active')) {
-            isRandom = true;
-           }else{
-            isRandom =false;
-           }
-          }
+        //xử lí nút random
+        getRandomBtn.onclick = function () {
+            if (this.classList.toggle('active')) {
+                isRandom = true;
+            } else {
+                isRandom = false;
+            }
+        }
 
-          //xử lí chọn bài hát 
+        //xử lí chọn bài hát 
         //  selectSong.forEach(function(song,index) {
         //     song.onclick = function() {
         //         songDefaultIndex = index;
         //         app.renderSongPlayer();
+        //         // app.renderListSong();
         //         // songDefaultIndex = index;
         //         // getAudio.play();
         //     }
         //  } )
-        getMusicLists.onclick = function(e) {
+        getMusicLists.onclick = function (e) {
             var songNode = e.target.closest('.music-item');
-            if(songNode&&!e.target.closest('.music-item__more')) {
+            if (songNode && !e.target.closest('.music-item__more')) {
                 songDefaultIndex = Number(songNode.getAttribute('data-index'));
-                // console.log(songDefaultIndex)
+                app.renderListSong();
+                app.renderSongPlayer();
+                getAudio.play();
             }
-            app.renderListSong();
-            app.renderSongPlayer();
-            getAudio.play();
-            // console.log(songNode)
+
+
 
         }
-         //xử nút phát lại
-         getReplayBtn.onclick = function() {
-            if(this.classList.toggle('active')) {
+        //xử lí nút tải nhạc
+        getMore.forEach(function (song, index) {
+            song.onclick = function () {
+                app.downloadSong(index);
+            }
+        })
+        //xử nút phát lại
+        getReplayBtn.onclick = function () {
+            if (this.classList.toggle('active')) {
                 isReplay = true;
-               }else{
-                isReplay =false;
-               }
-         }
+            } else {
+                isReplay = false;
+            }
+        }
+
     },
 
-    run: function() {
+    run: function () {
         this.renderSongPlayer();
         this.renderListSong();
         this.handleSrollTop();
         this.handleEvents();
-       
+
     }
 }
 
